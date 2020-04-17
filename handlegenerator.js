@@ -20,33 +20,36 @@ class HandlerGenerator {
    
         Mongolib.getDatabase(db=>{
             Mongolib.getUserByUsername(db,username,docs=>{
-                console.log(docs)
+                
                let usuario=docs[0];
+               console.log(usuario)
       // Si los usuarios y las contraseñas coinciden, proceda con la generación del token
       // de lo contrario, un mensaje de error es retornado
-      if( username === usuario.username && bcrypt.compareSync(password, usuario.password) ) {
+      if(typeof usuario !== "undefined" && username === usuario.username && bcrypt.compareSync(password, usuario.password) ) {
         
         // Se genera un nuevo token para el nombre de usuario el cuál expira en 24 horas
         let token = jwt.sign( { username: username },
           config.secret, { expiresIn: '24h' } );
         
         // Retorna el token el cuál debe ser usado durante las siguientes solicitudes
-        res.send().json( {
-          success: true,
-          message: 'Authentication successful!',
-          token: token
-        } );
-     
+        res.json( {
+            success: true,
+            message: 'Authentication successful!',
+            token: token
+          });
+  
       } else{
-          console.log(usuario.username)
-          console.log(usuario.password)
+        res.status( 403 ).json( {
+            success: false,
+            message: 'Incorrect username or password'
+          } );
       }
     })
 })
     } else {
 
       // El error 400 corresponde a Bad Request de acuerdo al estándar HTTP
-      res.send( 400 ).json( {
+      res.status( 400 ).json( {
         success: false,
         message: 'Authentication failed! Please check the request'
       } );
